@@ -11,7 +11,7 @@ type Users struct {
 	Name 			string 		`gorm:"type:varchar(255);not null;unique"`
 	Email          	string    	`gorm:"type:varchar(50);not null;unique"`
 	ProfilePicture 	string    	`gorm:"type:varchar(255)"`  
-	IsActive       	bool      	`gorm:"type:boolean;not null;default:true"`                      
+	IsActive       	bool      	`gorm:"type:boolean;not null"`                      
 	CreatedBy      	string    	`gorm:"type:varchar(50);not null;default:'system'"`            
 	UpdatedBy      	string    	`gorm:"type:varchar(50);not null;default:'system'"`              
 	CreatedAt      	time.Time 	`gorm:"autoCreateTime;not null;default:now()"`                   

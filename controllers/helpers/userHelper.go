@@ -41,6 +41,7 @@ func UserRequestRegisterByEmail(RequestRegisterByEmailRequest requests.RequestRe
 			user.Email = RequestRegisterByEmailRequest.Email
 			user.CreatedAt = now
 			user.UpdatedAt = now
+			user.IsActive = false
 
 			err = db.Create(&user).Error
 			if err != nil {
@@ -58,7 +59,7 @@ func UserRequestRegisterByEmail(RequestRegisterByEmailRequest requests.RequestRe
 			return 500, output
 		}
 	} else {
-		err = db.Model(&user).Updates(database.Users{UpdatedAt: now}).Error
+		err = db.Model(&user).Updates(database.Users{UpdatedAt: now, IsActive: false}).Error
 		if err != nil {
 			output := outputs.InternalServerErrorOutput{
 				Code:    500,
@@ -86,6 +87,7 @@ func UserRequestRegisterByEmail(RequestRegisterByEmailRequest requests.RequestRe
 	if err = utils.SendOTPEmail(RequestRegisterByEmailRequest.Email, otp); err != nil {
 		return fmt.Println("failed to send OTP email: %w", err)
 	}
+
 	output := outputs.RegisterByEmailOutput{
 		Message: "Success",
 		Code:    200,
@@ -142,7 +144,6 @@ func VerifyOTPByEmailRequest(VerifyOTPByEmailRequest requests.VerifyOTPByEmailRe
 			Message: "Bad Request: OTP with user id " + user.ID.String() + " and OTP " + VerifyOTPByEmailRequest.OTP + " has expired",
 		}
 		err = db.Delete(&otps).Error
-
 		if err != nil {
 			output := outputs.InternalServerErrorOutput{
 				Code:    500,
@@ -150,7 +151,6 @@ func VerifyOTPByEmailRequest(VerifyOTPByEmailRequest requests.VerifyOTPByEmailRe
 			}
 			return 500, output
 		}
-
 		return 400, output
 	}
 
@@ -161,6 +161,15 @@ func VerifyOTPByEmailRequest(VerifyOTPByEmailRequest requests.VerifyOTPByEmailRe
 		output := outputs.InternalServerErrorOutput{
 			Code:    500,
 			Message: "Internal Server Error: " + err.Error(),
+		}
+		return 500, output
+	}
+
+	err = db.Model(&user).Updates(database.Users{IsActive: true, UpdatedAt: now}).Error
+	if err != nil {
+		output := outputs.InternalServerErrorOutput{
+			Code:    500,
+			Message: "Internal Server Error: Failed to update user: " + err.Error(),
 		}
 		return 500, output
 	}
@@ -176,7 +185,6 @@ func VerifyOTPByEmailRequest(VerifyOTPByEmailRequest requests.VerifyOTPByEmailRe
 	}
 
 	err = db.Delete(&otps).Error
-
 	if err != nil {
 		output := outputs.InternalServerErrorOutput{
 			Code:    500,
