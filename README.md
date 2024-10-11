@@ -12,11 +12,11 @@ Change the name of the .env.example file to .env and update the values within th
 ---
 Clone this repository into ur Local
 ```
-git clone https://github.com/VincentLimarus/go-register-gmail-otp.git
+git clone https://github.com/VincentLimarus/go-register-gmail-otps.git
 ```
 Go to the Directory
 ```
-cd go-register-gmail-otp
+cd go-register-gmail-otps
 ```
 Install Dependency
 ```
@@ -46,3 +46,6 @@ http://localhost:3000/api/v1/auth/register/verify
 make sure the otp is correct (same with the OTP in Gmail)
 ```
 
+**Key Takeaways**
+---
+A user who registers in the system using Gmail will be initially added to the database with the `Is_Active status set to False`. However, once the user completes registration with an OTP, the `Is_Active status will be updated to True`.
