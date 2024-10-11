@@ -11,7 +11,6 @@ import (
 
 func SetupRoutes() *gin.Engine {
 	config := cors.DefaultConfig()
-	config.AllowOrigins = []string{"https://sportsnow.app"}
 	config.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type", "Authorization"}
 	config.AllowMethods = []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"}
 
@@ -28,11 +27,11 @@ func SetupRoutes() *gin.Engine {
 	})
 
 	router.GET("/", func(c *gin.Context) {
-		c.JSON(http.StatusOK, "Sports Now API Development")
+		c.JSON(http.StatusOK, "go-register-gmail-otps Endpoints")
 	})
 
 	router.GET("/api/v1", func(c *gin.Context) {
-		c.JSON(http.StatusOK, "Sports Now API Development Version 1.0.0")
+		c.JSON(http.StatusOK, "go-register-gmail-otps API Version 1.0.0")
 	})
 
 	base := router.Group("/api/v1")
