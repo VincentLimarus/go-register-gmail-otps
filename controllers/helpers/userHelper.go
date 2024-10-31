@@ -2,7 +2,6 @@ package helpers
 
 import (
 	"errors"
-	"fmt"
 	"time"
 
 	"VincentLimarus/go-register-gmail-otps/configs"
@@ -16,32 +15,15 @@ import (
 )
 
 func UserRequestRegisterByEmail(RequestRegisterByEmailRequest requests.RequestRegisterByEmailRequest) (int, interface{}) {
-	now := time.Now()
-
-	otp, err := utils.GenerateOTP()
-	if err != nil {
-		output := outputs.InternalServerErrorOutput{
-			Code:    500,
-			Message: "Internal Server Error: " + err.Error(),
-		}
-		return 500, output
-	}
-
-	otpExpiry := now.Add(time.Minute * 5)
-
 	var user database.Users
-	var otps database.Otps
-
+	now := time.Now()
+	
 	db := configs.GetDB()
-
-	err = db.Where("email = ?", RequestRegisterByEmailRequest.Email).First(&user).Error
+	err := db.Where("email = ?", RequestRegisterByEmailRequest.Email).First(&user).Error
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			user.Email = RequestRegisterByEmailRequest.Email
-			user.CreatedAt = now
-			user.UpdatedAt = now
-			user.IsActive = false
 
 			err = db.Create(&user).Error
 			if err != nil {
@@ -58,34 +40,52 @@ func UserRequestRegisterByEmail(RequestRegisterByEmailRequest requests.RequestRe
 			}
 			return 500, output
 		}
-	} else {
-		err = db.Model(&user).Updates(database.Users{UpdatedAt: now, IsActive: false}).Error
-		if err != nil {
+	}
+
+	otpExpiry := now.Add(time.Minute * 3)
+	var otps database.Otps
+	otp, err := utils.GenerateOTP()
+	if err != nil {
+		output := outputs.InternalServerErrorOutput{
+			Code:    500,
+			Message: "Internal Server Error: " + err.Error(),
+		}
+		return 500, output
+	}
+
+	err = db.Model(&database.Otps{}).Find(&otps, "user_id = ?", user.ID).Error
+	otps.OTP = otp
+	otps.OTPExpiry = otpExpiry
+	otps.UserID = user.ID
+	otps.IsActive = true
+
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			err = db.Create(&otps).Error
+			if err != nil {
+				output := outputs.InternalServerErrorOutput{
+					Code:    500,
+					Message: "Internal Server Error: Failed to create OTP: " + err.Error(),
+				}
+				return 500, output
+			}
+		} else {
 			output := outputs.InternalServerErrorOutput{
 				Code:    500,
-				Message: "Internal Server Error: Failed to update user: " + err.Error(),
+				Message: "Internal Server Error: Failed to deactivate old OTPs: " + err.Error(),
 			}
 			return 500, output
 		}
 	}
 
-	otps.OTP = otp
-	otps.OTPExpiry = otpExpiry
-	otps.UserID = user.ID
-	otps.CreatedAt = now
-	otps.UpdatedAt = now
-
-	err = db.Create(&otps).Error
-	if err != nil {
-		output := outputs.InternalServerErrorOutput{
-			Code:    500,
-			Message: "Internal Server Error: Failed to create OTP: " + err.Error(),
-		}
-		return 500, output
-	}
+	_ = db.Save(&otps)
 
 	if err = utils.SendOTPEmail(RequestRegisterByEmailRequest.Email, otp); err != nil {
-		return fmt.Println("failed to send OTP email: %w", err)
+		output := outputs.InternalServerErrorOutput{
+			Code:    500,
+			Message: "Internal Server Error: Failed to send OTP: " + err.Error(),
+		}
+		return 500, output
 	}
 
 	output := outputs.RegisterByEmailOutput{

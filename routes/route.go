@@ -13,10 +13,11 @@ func SetupRoutes() *gin.Engine {
 	config := cors.DefaultConfig()
 	config.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type", "Authorization"}
 	config.AllowMethods = []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"}
+	config.AllowAllOrigins = true 
 
 	router := gin.Default()
 	gin.SetMode(gin.DebugMode)
-	// gin.SetMode(gin.ReleaseMode)
+	gin.SetMode(gin.ReleaseMode)
 	router.SetTrustedProxies(nil)
 	router.Use(gin.Logger())
 	router.Use(gin.Recovery())

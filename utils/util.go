@@ -58,10 +58,10 @@ func GenerateOTP() (string, error) {
 
 func SendOTPEmail(userEmail, otp string) error {
 	from := os.Getenv("EMAIL")
-	password := os.Getenv("PASSWORD") 
+	password := os.Getenv("PASSWORD")
 
 	to := []string{userEmail}
-	subject := "Hello There!, Here is your OTP code"
+	subject := "Sport's Now - Do It Now OTP Confirmation"
 	body := "Your OTP code is: " + otp
 
 	smtpHost := "smtp.gmail.com"
@@ -77,3 +77,4 @@ func SendOTPEmail(userEmail, otp string) error {
 	err := smtp.SendMail(smtpHost+":"+smtpPort, auth, from, to, msg)
 	return err
 }
+
