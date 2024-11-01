@@ -61,7 +61,7 @@ func SendOTPEmail(userEmail, otp string) error {
 	password := os.Getenv("PASSWORD")
 
 	to := []string{userEmail}
-	subject := "Sport's Now - Do It Now OTP Confirmation"
+	subject := "@Vincent Oliver Limarus - OTP Confirmation"
 	body := "Your OTP code is: " + otp
 
 	smtpHost := "smtp.gmail.com"
